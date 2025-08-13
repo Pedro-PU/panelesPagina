@@ -1,0 +1,62 @@
+<ion-header id="color-header">
+  <h1>Paneles Solares</h1>
+</ion-header>
+<ion-button expand="block" color="primary" (click)="exportarCSV()">
+  Descargar CSV
+</ion-button>
+
+<ion-content class="content-background">
+  <ng-container *ngFor="let fecha of getFechas()">
+    <h2>{{ fecha }}</h2>
+    <div class="columnas-container">
+      <!-- Panel TUGULA -->
+      <div class="columna">
+        <h3>
+          Panel TUGULA - {{ convertirAVatios(getPromedioPorPanel(fecha, 'Panel TUGULA')) }} W
+        </h3>
+        <canvas id="chart-{{fecha}}-Panel TUGULA"></canvas>
+        <ion-list *ngIf="getPanelMessages(fecha, 'Panel TUGULA').length > 0; else noData1">
+          <ion-item *ngFor="let mensaje of getPanelMessages(fecha, 'Panel TUGULA')">
+            <p>Voltaje: {{ mensaje.voltaje }} V<br>Tiempo: {{ mensaje.tiempo }}</p>
+          </ion-item>
+        </ion-list>
+        <ng-template #noData1>
+          <p>No hay datos para el Panel TUGULA en esta fecha.</p>
+        </ng-template>
+      </div>
+  
+      <!-- Panel CALEDONIA -->
+      <div class="columna">
+        <h3>
+          Panel CALEDONIA - {{ convertirAVatios(getPromedioPorPanel(fecha, 'Panel CALEDONIA')) }} W
+        </h3>
+        <canvas id="chart-{{fecha}}-Panel CALEDONIA"></canvas>
+        <ion-list *ngIf="getPanelMessages(fecha, 'Panel CALEDONIA').length > 0; else noData2">
+          <ion-item *ngFor="let mensaje of getPanelMessages(fecha, 'Panel CALEDONIA')">
+            <p>Voltaje: {{ mensaje.voltaje }} V<br>Tiempo: {{ mensaje.tiempo }}</p>
+          </ion-item>
+        </ion-list>
+        <ng-template #noData2>
+          <p>No hay datos para el Panel CALEDONIA en esta fecha.</p>
+        </ng-template>
+      </div>
+  
+      <!-- Panel SAN CRISTOBAL -->
+      <div class="columna">
+        <h3>
+          Panel SAN CRISTOBAL - {{ convertirAVatios(getPromedioPorPanel(fecha, 'Panel SAN CRISTOBAL')) }} W
+        </h3>
+        <canvas id="chart-{{fecha}}-Panel SAN CRISTOBAL"></canvas>
+        <ion-list *ngIf="getPanelMessages(fecha, 'Panel SAN CRISTOBAL').length > 0; else noData3">
+          <ion-item *ngFor="let mensaje of getPanelMessages(fecha, 'Panel SAN CRISTOBAL')">
+            <p>Voltaje: {{ mensaje.voltaje }} V<br>Tiempo: {{ mensaje.tiempo }}</p>
+          </ion-item>
+        </ion-list>
+        <ng-template #noData3>
+          <p>No hay datos para el Panel SAN CRISTOBAL en esta fecha.</p>
+        </ng-template>
+      </div>
+    </div>
+  </ng-container>
+  
+</ion-content>

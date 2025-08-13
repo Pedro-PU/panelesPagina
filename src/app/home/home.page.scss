@@ -1,0 +1,77 @@
+/* Ajustes para el contenedor de columnas */
+.content-background {
+  --background: #ffffff;
+}
+
+.columnas-container {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+  background-color: #ffffff;
+}
+
+/* Ajustes para cada columna */
+.columna {
+  flex: 1;
+  min-width: 300px;
+  margin: 10px;
+  background-color: #ffffff; /* Fondo para mejorar la visibilidad */
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 10px 10px 20px rgba(0, 0, 0, 0.364);
+  max-height: 35rem; /* Ajusta este valor según el tamaño deseado */
+  overflow-y: auto; /* Habilita el scroll vertical */
+  box-sizing: border-box; /* Asegura que el padding y el border se incluyan en el ancho total */
+}
+
+/* Ajustes para los elementos dentro de las columnas */
+.columna h3 {
+  font-size: 1.2em;
+  margin-bottom: 10px;
+  text-align: center;
+}
+
+.columna ion-item {
+  margin: 5px 0;
+  font-size: 1em;
+}
+
+canvas {
+  margin-top: 20px;
+}
+
+/* Responsivo para pantallas pequeñas */
+@media (max-width: 768px) {
+  .columna {
+    flex: 1 0 100%; /* Ocupa el 100% del ancho disponible */
+    margin: 10px 0; /* Ajusta el margen para evitar espacio extra en los lados */
+  }
+
+}
+
+h2 {
+  text-align: center;
+  font-weight: bolder;
+  font-size: 300%;
+  background-color: #072e4c;
+  color: #ffffff;
+  box-shadow: 5px 5px 8px rgba(49, 130, 162, 0.336);
+}
+
+h3 {
+  font-weight: bolder;
+  color: #000000;
+}
+
+h1 {
+  font-size: 350%;
+  text-align: center;
+  font-weight: bolder;
+}
+
+#color-header {
+  background-color: #072e4c;
+  color: #ffffff;
+  box-shadow: 5px 5px 8px rgba(23, 65, 82, 0.336);
+}
