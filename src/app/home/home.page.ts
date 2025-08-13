@@ -1,6 +1,7 @@
 import { Component, OnInit, AfterViewInit } from '@angular/core';
 import { Database, ref, onValue } from '@angular/fire/database';
 import { Chart, registerables } from 'chart.js';
+import * as XLSX from 'xlsx';
 
 @Component({
   selector: 'app-home',
@@ -234,44 +235,37 @@ export class HomePage implements OnInit, AfterViewInit {
     return Object.keys(this.mensajesAgrupados).sort(); // ISO ya ordena bien
   }
 
-  // ✅ Reemplaza tu exportarCSV completo por este
-  exportarCSV() {
+  exportarXLSX() {
     const panels = ['Panel TUGULA', 'Panel CALEDONIA', 'Panel SAN CRISTOBAL'];
-    // Fuerza a Excel a usar ';' como separador
-    let csvContent = 'data:text/csv;charset=utf-8,sep=;\n';
+    const wb = XLSX.utils.book_new(); // crea un nuevo libro Excel
 
     panels.forEach(panel => {
-      csvContent += `${panel}\n`; // título del panel
+      let rows: (string | number)[][] = [];
+      rows.push([panel]); // título del panel
 
       for (const fechaIso of this.getFechas()) {
         const mensajesPanel = this.getPanelMessages(fechaIso, panel);
         if (mensajesPanel.length > 0) {
-          // Muestra como YYYY/MM/DD para que no se confunda
-          const fechaParaCSV = fechaIso.replace(/-/g, '/'); // "YYYY/MM/DD"
-          csvContent += `${fechaParaCSV};\n`;
-          csvContent += 'Hora;Voltaje (V)\n';
+          const fechaParaXLSX = fechaIso.replace(/-/g, '/'); // "YYYY/MM/DD"
+          rows.push([fechaParaXLSX]); // fecha
+          rows.push(['Hora', 'Voltaje (V)']); // encabezados
 
           mensajesPanel.forEach(m => {
-            const horaMatch = m.tiempo.match(/,(\d{2}:\d{2}:\d{2})/);
+            const horaMatch = m.tiempo.match(/,(\d{2}:\d{2}):\d{2}/); // capturamos solo HH:MM
             const hora = horaMatch ? horaMatch[1] : '';
-            csvContent += `${hora};${m.voltaje}\n`;
+            rows.push([hora, m.voltaje ?? 0]);
           });
 
-          csvContent += '\n'; // espacio entre fechas
+          rows.push([]); // espacio entre fechas
         }
       }
 
-      csvContent += '\n'; // espacio entre paneles
+      const ws = XLSX.utils.aoa_to_sheet(rows);
+      XLSX.utils.book_append_sheet(wb, ws, panel.replace('Panel ', ''));
     });
 
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement('a');
-    link.setAttribute('href', encodedUri);
     const fechaActual = new Date().toISOString().split('T')[0];
-    link.setAttribute('download', `voltajes_${fechaActual}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    XLSX.writeFile(wb, `voltajes_${fechaActual}.xlsx`);
   }
 
 }
