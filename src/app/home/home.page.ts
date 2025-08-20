@@ -35,12 +35,14 @@ export class HomePage implements OnInit, AfterViewInit {
             const regex = /\d+$/;
             const match = voltagePart.match(regex);
             const voltajeRaw = match ? parseInt(match[0], 10) : null;
-            const voltaje = voltajeRaw !== null ? this.mapVoltaje(voltajeRaw) : null;
             const tiempo = parts.length > 0 ? parts[0].trim() : '';
     
             // Convertimos el tiempo a un objeto Date para ordenar
             const tiempoOrdenable = this.convertirATiempoOrdenable(tiempo);
             const panel = this.getPanelFromSender(sender);
+
+            const voltaje = voltajeRaw !== null ? this.ajustarValor(voltajeRaw, tiempoOrdenable) : null;
+
     
             mensajes.push({ panel, voltaje, tiempo, tiempoOrdenable });
           }
@@ -84,12 +86,18 @@ export class HomePage implements OnInit, AfterViewInit {
     this.generarGraficas();
   }
 
-
-
-  mapVoltaje(voltajeRaw: number): number {
-    const mappedVoltaje = voltajeRaw * 0.062;
-    return parseFloat(mappedVoltaje.toFixed(2));
+  ajustarValor(voltajeRaw: number, fecha: Date): number {
+    let mappedVoltaje = voltajeRaw * 2;
+    if (mappedVoltaje < 1000) { 
+      mappedVoltaje += 800;
+    } else if (mappedVoltaje >= 1000 && mappedVoltaje <= 2000) { 
+      mappedVoltaje += 400;
+    } 
+    // >2000 no se toca
+    return parseFloat(mappedVoltaje.toFixed(2)); 
   }
+
+
 
   getPanelFromSender(sender: string): string {
     switch (sender) {
@@ -104,45 +112,34 @@ export class HomePage implements OnInit, AfterViewInit {
     }
   }
   
-
   calcularPromedios() {
     for (const fecha in this.mensajesAgrupados) {
       if (this.mensajesAgrupados.hasOwnProperty(fecha)) {
-        const voltajesPorPanel: { [panel: string]: number[] } = {};
+        const potenciasPorPanel: { [panel: string]: number[] } = {};
 
         this.mensajesAgrupados[fecha].forEach(mensaje => {
-          if (!voltajesPorPanel[mensaje.panel]) {
-            voltajesPorPanel[mensaje.panel] = [];
+          if (!potenciasPorPanel[mensaje.panel]) {
+            potenciasPorPanel[mensaje.panel] = [];
           }
-          if (mensaje.voltaje !== null) {
-            voltajesPorPanel[mensaje.panel].push(mensaje.voltaje);
+          if (mensaje.voltaje !== null) { // aquí voltaje es en realidad potencia
+            potenciasPorPanel[mensaje.panel].push(mensaje.voltaje);
           }
         });
 
         this.promediosPorFecha[fecha] = [];
 
-        for (const panel in voltajesPorPanel) {
-          if (voltajesPorPanel.hasOwnProperty(panel)) {
-            const voltajes = voltajesPorPanel[panel];
-            const promedio = this.calcularPromedio(voltajes);
-            this.promediosPorFecha[fecha].push({ panel, promedio });
+        for (const panel in potenciasPorPanel) {
+          if (potenciasPorPanel.hasOwnProperty(panel)) {
+            const valores = potenciasPorPanel[panel];
+            const suma = valores.reduce((acc, val) => acc + val, 0);
+            const promedio = (suma / (3 * 120000)) * 100;
+            this.promediosPorFecha[fecha].push({ panel, promedio: parseFloat(promedio.toFixed(2)) });
           }
         }
       }
     }
   }
-
-  calcularPromedio(voltajes: number[]): number {
-    const voltajesFiltrados = voltajes.filter(v => v > 0);
-    if (voltajesFiltrados.length === 0) return 0;
-    const suma = voltajesFiltrados.reduce((acc, val) => acc + val, 0);
-    return parseFloat((suma / voltajesFiltrados.length).toFixed(2));
-  }
-  convertirAVatios(voltajePromedio: number): number {
-    const vatios = ((voltajePromedio ** 2) / 24)*2;//18
-    return parseFloat(vatios.toFixed(2));
-  }
-    
+  
 
   generarGraficas() {
     // Eliminar las gráficas anteriores antes de regenerarlas
@@ -173,7 +170,7 @@ export class HomePage implements OnInit, AfterViewInit {
         data: {
           labels: [label],
           datasets: [{
-            label: 'Promedio de Voltaje (V)',
+            label: 'Potencia (%)',
             data: [promedio],
             backgroundColor: ['#3e95cd'],
             borderColor: ['#3e95cd'],
@@ -183,8 +180,7 @@ export class HomePage implements OnInit, AfterViewInit {
         options: {
           scales: {
             y: {
-              beginAtZero: true,
-              max: 250
+              beginAtZero: true
             }
           }
         }
@@ -248,7 +244,7 @@ export class HomePage implements OnInit, AfterViewInit {
         if (mensajesPanel.length > 0) {
           const fechaParaXLSX = fechaIso.replace(/-/g, '/'); // "YYYY/MM/DD"
           rows.push([fechaParaXLSX]); // fecha
-          rows.push(['Hora', 'Voltaje (V)']); // encabezados
+          rows.push(['Hora', 'Potencia (W)']); // encabezados
 
           mensajesPanel.forEach(m => {
             const horaMatch = m.tiempo.match(/,(\d{2}:\d{2}):\d{2}/); // capturamos solo HH:MM
@@ -265,7 +261,7 @@ export class HomePage implements OnInit, AfterViewInit {
     });
 
     const fechaActual = new Date().toISOString().split('T')[0];
-    XLSX.writeFile(wb, `voltajes_${fechaActual}.xlsx`);
+    XLSX.writeFile(wb, `potencias_${fechaActual}.xlsx`);
   }
 
 }
