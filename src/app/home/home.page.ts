@@ -92,8 +92,9 @@ export class HomePage implements OnInit, AfterViewInit {
       mappedVoltaje += 800;
     } else if (mappedVoltaje >= 1000 && mappedVoltaje <= 2000) { 
       mappedVoltaje += 400;
+    }else if (mappedVoltaje > 2000){
+      mappedVoltaje*1.12; //aumento a mayores de 2000
     } 
-    // >2000 no se toca
     return parseFloat(mappedVoltaje.toFixed(2)); 
   }
 
